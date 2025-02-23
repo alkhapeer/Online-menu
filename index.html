@@ -5,61 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منيو المطاعم</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .container { width: 80%; margin: auto; }
-        select, input, button { margin: 10px; padding: 10px; }
-        .menu { display: none; border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>منيو المطاعم</h1>
+    <h1>منيو المطاعم</h1>
+    
+    <div>
         <select id="country">
-            <option value="">اختر الدولة</option>
-            <option value="السعودية">السعودية</option>
-            <option value="الإمارات">الإمارات</option>
-            <option value="مصر">مصر</option>
+            <option>السعودية</option>
+            <option>الإمارات</option>
         </select>
         <select id="city">
-            <option value="">اختر المدينة</option>
+            <option>الرياض</option>
+            <option>جدة</option>
         </select>
-        <input type="text" id="restaurant" placeholder="ابحث عن المطعم">
-        <button onclick="searchMenu()">بحث</button>
-        
-        <div id="menu" class="menu">
-            <h2 id="restaurant-name"></h2>
-            <p>تفاصيل المنيو هنا...</p>
-        </div>
+        <input type="text" id="search" placeholder="ابحث عن المطعم">
+        <button onclick="searchRestaurant()">بحث</button>
     </div>
-
+    
+    <h2>المطاعم المسجلة</h2>
+    <ul id="restaurantsList"></ul>
+    
+    <h2><a href="admin.html">صفحة الإدارة</a></h2>
+    
     <script>
-        const cities = {
-            "السعودية": ["الرياض", "جدة", "مكة"],
-            "الإمارات": ["دبي", "أبوظبي", "الشارقة"],
-            "مصر": ["القاهرة", "الإسكندرية", "الجيزة"]
-        };
+        let restaurants = JSON.parse(localStorage.getItem("restaurants")) || [];
 
-        document.getElementById("country").addEventListener("change", function() {
-            let country = this.value;
-            let citySelect = document.getElementById("city");
-            citySelect.innerHTML = '<option value="">اختر المدينة</option>';
-            if (country && cities[country]) {
-                cities[country].forEach(city => {
-                    let option = document.createElement("option");
-                    option.value = city;
-                    option.textContent = city;
-                    citySelect.appendChild(option);
-                });
-            }
-        });
-
-        function searchMenu() {
-            let restaurant = document.getElementById("restaurant").value.trim();
-            if (restaurant) {
-                document.getElementById("restaurant-name").textContent = restaurant;
-                document.getElementById("menu").style.display = "block";
-            }
+        function displayRestaurants() {
+            let list = document.getElementById('restaurantsList');
+            list.innerHTML = "";
+            restaurants.forEach(restaurant => {
+                let listItem = document.createElement("li");
+                listItem.innerHTML = `${restaurant.name} - <a href="${restaurant.menu}" target="_blank">عرض المنيو</a>`;
+                list.appendChild(listItem);
+            });
         }
+
+        function searchRestaurant() {
+            let searchQuery = document.getElementById('search').value.toLowerCase();
+            let list = document.getElementById('restaurantsList');
+            list.innerHTML = "";
+            restaurants.forEach(restaurant => {
+                if (restaurant.name.toLowerCase().includes(searchQuery)) {
+                    let listItem = document.createElement("li");
+                    listItem.innerHTML = `${restaurant.name} - <a href="${restaurant.menu}" target="_blank">عرض المنيو</a>`;
+                    list.appendChild(listItem);
+                }
+            });
+        }
+
+        displayRestaurants();
     </script>
 </body>
 </html>
