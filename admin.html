@@ -5,35 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>صفحة الإدارة</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; }
+        body { font-family: Arial, sans-serif; text-align: center; }
     </style>
 </head>
 <body>
-    <h1>صفحة الإدارة - إضافة مطعم</h1>
-    
+    <h1>صفحة الإدارة</h1>
+
+    <h2>إضافة دولة</h2>
+    <input type="text" id="newCountry" placeholder="أدخل اسم الدولة">
+    <button onclick="addCountry()">إضافة</button>
+
+    <h2>إضافة مدينة</h2>
+    <input type="text" id="newCity" placeholder="أدخل اسم المدينة">
+    <button onclick="addCity()">إضافة</button>
+
+    <h2>إضافة مطعم ومنيو</h2>
     <input type="text" id="restaurantName" placeholder="اسم المطعم">
     <input type="text" id="menuLink" placeholder="رابط المنيو">
     <button onclick="addRestaurant()">إضافة</button>
-    
-    <h2><a href="index.html">العودة للصفحة الرئيسية</a></h2>
 
     <script>
-        function addRestaurant() {
-            let name = document.getElementById('restaurantName').value.trim();
-            let menu = document.getElementById('menuLink').value.trim();
-            
-            if (name === "" || menu === "") {
-                alert("يرجى إدخال جميع البيانات");
-                return;
+        function addCountry() {
+            let country = document.getElementById("newCountry").value;
+            if (country) {
+                alert("تمت إضافة الدولة: " + country);
+                document.getElementById("newCountry").value = "";
             }
+        }
 
-            let restaurants = JSON.parse(localStorage.getItem("restaurants")) || [];
-            restaurants.push({ name, menu });
-            localStorage.setItem("restaurants", JSON.stringify(restaurants));
+        function addCity() {
+            let city = document.getElementById("newCity").value;
+            if (city) {
+                alert("تمت إضافة المدينة: " + city);
+                document.getElementById("newCity").value = "";
+            }
+        }
 
-            alert("تمت إضافة المطعم بنجاح!");
-            document.getElementById('restaurantName').value = "";
-            document.getElementById('menuLink').value = "";
+        function addRestaurant() {
+            let name = document.getElementById("restaurantName").value;
+            let menu = document.getElementById("menuLink").value;
+            if (name && menu) {
+                alert("تمت إضافة المطعم: " + name + " مع المنيو: " + menu);
+                document.getElementById("restaurantName").value = "";
+                document.getElementById("menuLink").value = "";
+            }
         }
     </script>
 </body>
