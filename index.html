@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منيو المطاعم</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; }
+        body { font-family: Arial, sans-serif; text-align: center; }
     </style>
 </head>
 <body>
@@ -26,22 +26,13 @@
     
     <h2>المطاعم المسجلة</h2>
     <ul id="restaurantsList"></ul>
-    
-    <h2><a href="admin.html">صفحة الإدارة</a></h2>
-    
+
     <script>
-        let restaurants = JSON.parse(localStorage.getItem("restaurants")) || [];
-
-        function displayRestaurants() {
-            let list = document.getElementById('restaurantsList');
-            list.innerHTML = "";
-            restaurants.forEach(restaurant => {
-                let listItem = document.createElement("li");
-                listItem.innerHTML = `${restaurant.name} - <a href="${restaurant.menu}" target="_blank">عرض المنيو</a>`;
-                list.appendChild(listItem);
-            });
-        }
-
+        let restaurants = [
+            { name: "الفرن الذهبي", menu: "menu1.html" },
+            { name: "المطعم اليمني", menu: "menu2.html" }
+        ];
+        
         function searchRestaurant() {
             let searchQuery = document.getElementById('search').value.toLowerCase();
             let list = document.getElementById('restaurantsList');
@@ -54,8 +45,6 @@
                 }
             });
         }
-
-        displayRestaurants();
     </script>
 </body>
 </html>
