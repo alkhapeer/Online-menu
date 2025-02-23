@@ -7,155 +7,87 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         input, button { margin: 5px; padding: 5px; }
-        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
-        th, td { padding: 10px; border: 1px solid #ddd; }
-        th { background-color: #f4f4f4; }
-        a { text-decoration: none; color: blue; }
-        button { cursor: pointer; }
     </style>
 </head>
 <body>
-
     <h1>صفحة الإدارة</h1>
-
-    <table>
-        <thead>
-            <tr>
-                <th>الدولة</th>
-                <th>المدينة</th>
-                <th>المطعم</th>
-                <th>رابط المنيو</th>
-            </tr>
-        </thead>
-        <tbody id="dataTable"></tbody>
-    </table>
-
-    <h2>إضافة بيانات</h2>
+    
+    <h2>إضافة دولة</h2>
     <input type="text" id="countryName" placeholder="أدخل اسم الدولة">
-    <button onclick="addItem('country')">إضافة دولة</button>
+    <button onclick="addCountry()">إضافة</button>
     <ul id="countriesList"></ul>
 
+    <h2>إضافة مدينة</h2>
     <input type="text" id="cityName" placeholder="أدخل اسم المدينة">
-    <button onclick="addItem('city')">إضافة مدينة</button>
+    <button onclick="addCity()">إضافة</button>
     <ul id="citiesList"></ul>
 
+    <h2>إضافة مطعم ومنيو</h2>
     <input type="text" id="restaurantName" placeholder="اسم المطعم">
     <input type="text" id="menuLink" placeholder="رابط المنيو">
-    <button onclick="addItem('restaurant')">إضافة مطعم</button>
+    <button onclick="addRestaurant()">إضافة</button>
     <ul id="restaurantsList"></ul>
 
     <script>
-        let countries = [], cities = [], restaurants = [];
+        let countries = [];
+        let cities = [];
+        let restaurants = [];
 
-        const apiUrl = "https://script.google.com/macros/s/AKfycby1E6rRIWAUbCuNu3oCHyauTV91iba6cjAgDgBFDM5-ZLgkTA4q_lmdTwaKZSwt6iE4QQ/exec";
-
-        async function fetchData() {
-            try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-
-                if (Array.isArray(data) && data.length > 0) {
-                    displayData(data);
-                } else {
-                    console.log("لا توجد بيانات متاحة.");
-                }
-            } catch (error) {
-                console.error("خطأ أثناء جلب البيانات:", error);
+        function addCountry() {
+            let name = document.getElementById("countryName").value.trim();
+            if (name) {
+                countries.push(name);
+                updateList("countriesList", countries, "removeCountry");
             }
         }
 
-        function displayData(data) {
-            const tableBody = document.getElementById("dataTable");
-            tableBody.innerHTML = "";
-
-            data.forEach(row => {
-                if (row.length >= 4) {
-                    const tr = document.createElement("tr");
-                    row.forEach((cell, index) => {
-                        const td = document.createElement("td");
-                        if (index === 3) {
-                            const link = document.createElement("a");
-                            link.href = cell;
-                            link.textContent = "عرض المنيو";
-                            link.target = "_blank";
-                            td.appendChild(link);
-                        } else {
-                            td.textContent = cell;
-                        }
-                        tr.appendChild(td);
-                    });
-                    tableBody.appendChild(tr);
-                }
-            });
+        function removeCountry(index) {
+            countries.splice(index, 1);
+            updateList("countriesList", countries, "removeCountry");
         }
 
-        function addItem(type) {
-            let inputField, list, array, removeFunction;
-
-            if (type === 'country') {
-                inputField = document.getElementById("countryName");
-                list = document.getElementById("countriesList");
-                array = countries;
-                removeFunction = removeCountry;
-            } else if (type === 'city') {
-                inputField = document.getElementById("cityName");
-                list = document.getElementById("citiesList");
-                array = cities;
-                removeFunction = removeCity;
-            } else {
-                inputField = document.getElementById("restaurantName");
-                let linkField = document.getElementById("menuLink");
-
-                if (!isValidUrl(linkField.value)) {
-                    alert("يرجى إدخال رابط منيو صحيح.");
-                    return;
-                }
-
-                array = restaurants;
-                list = document.getElementById("restaurantsList");
-                removeFunction = removeRestaurant;
-
-                array.push({ name: inputField.value.trim(), link: linkField.value.trim() });
-                linkField.value = "";
-            }
-
-            let name = inputField.value.trim();
-            if (name && !array.some(item => (typeof item === 'object' ? item.name : item) === name)) {
-                array.push(name);
-                updateList(list, array, removeFunction);
-                inputField.value = "";
+        function addCity() {
+            let name = document.getElementById("cityName").value.trim();
+            if (name) {
+                cities.push(name);
+                updateList("citiesList", cities, "removeCity");
             }
         }
 
-        function removeCountry(index) { updateList(document.getElementById("countriesList"), countries.splice(index, 1), removeCountry); }
-        function removeCity(index) { updateList(document.getElementById("citiesList"), cities.splice(index, 1), removeCity); }
-        function removeRestaurant(index) { restaurants.splice(index, 1); updateRestaurantsList(); }
+        function removeCity(index) {
+            cities.splice(index, 1);
+            updateList("citiesList", cities, "removeCity");
+        }
 
-        function updateList(listElement, array, removeFunction) {
-            listElement.innerHTML = "";
-            array.forEach((item, index) => {
-                listElement.innerHTML += `<li>${item} <button onclick="${removeFunction.name}(${index})">حذف</button></li>`;
+        function addRestaurant() {
+            let name = document.getElementById("restaurantName").value.trim();
+            let link = document.getElementById("menuLink").value.trim();
+            if (name && link) {
+                restaurants.push({ name, link });
+                updateRestaurantsList();
+            }
+        }
+
+        function removeRestaurant(index) {
+            restaurants.splice(index, 1);
+            updateRestaurantsList();
+        }
+
+        function updateList(elementId, list, removeFunction) {
+            let ul = document.getElementById(elementId);
+            ul.innerHTML = "";
+            list.forEach((item, index) => {
+                ul.innerHTML += `<li>${item} <button onclick="${removeFunction}(${index})">حذف</button></li>`;
             });
         }
 
         function updateRestaurantsList() {
-            let list = document.getElementById("restaurantsList");
-            list.innerHTML = "";
+            let ul = document.getElementById("restaurantsList");
+            ul.innerHTML = "";
             restaurants.forEach((item, index) => {
-                list.innerHTML += `<li>${item.name} - <a href="${item.link}" target="_blank">عرض المنيو</a> <button onclick="removeRestaurant(${index})">حذف</button></li>`;
+                ul.innerHTML += `<li>${item.name} - <a href="${item.link}" target="_blank">عرض المنيو</a> <button onclick="removeRestaurant(${index})">حذف</button></li>`;
             });
         }
-
-        function isValidUrl(string) {
-            try {
-                new URL(string);
-                return true;
-            } catch (_) {
-                return false;
-            }
-        }
-
-        window.onload = fetchData;
     </script>
 </body>
 </html>
