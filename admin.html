@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة الإدارة</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; }
+    </style>
+</head>
+<body>
+    <h1>صفحة الإدارة - إضافة مطعم</h1>
+    
+    <input type="text" id="restaurantName" placeholder="اسم المطعم">
+    <input type="text" id="menuLink" placeholder="رابط المنيو">
+    <button onclick="addRestaurant()">إضافة</button>
+    
+    <h2><a href="index.html">العودة للصفحة الرئيسية</a></h2>
+
+    <script>
+        function addRestaurant() {
+            let name = document.getElementById('restaurantName').value.trim();
+            let menu = document.getElementById('menuLink').value.trim();
+            
+            if (name === "" || menu === "") {
+                alert("يرجى إدخال جميع البيانات");
+                return;
+            }
+
+            let restaurants = JSON.parse(localStorage.getItem("restaurants")) || [];
+            restaurants.push({ name, menu });
+            localStorage.setItem("restaurants", JSON.stringify(restaurants));
+
+            alert("تمت إضافة المطعم بنجاح!");
+            document.getElementById('restaurantName').value = "";
+            document.getElementById('menuLink').value = "";
+        }
+    </script>
+</body>
+</html>
