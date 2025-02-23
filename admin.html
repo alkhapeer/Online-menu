@@ -27,64 +27,53 @@
                 <th>رابط المنيو</th>
             </tr>
         </thead>
-        <tbody id="dataTable">
-            <!-- سيتم إدراج البيانات هنا -->
-        </tbody>
+        <tbody id="dataTable"></tbody>
     </table>
 
-    <h2>إضافة دولة</h2>
+    <h2>إضافة بيانات</h2>
     <input type="text" id="countryName" placeholder="أدخل اسم الدولة">
-    <button onclick="addCountry()">إضافة</button>
+    <button onclick="addItem('country')">إضافة دولة</button>
     <ul id="countriesList"></ul>
 
-    <h2>إضافة مدينة</h2>
     <input type="text" id="cityName" placeholder="أدخل اسم المدينة">
-    <button onclick="addCity()">إضافة</button>
+    <button onclick="addItem('city')">إضافة مدينة</button>
     <ul id="citiesList"></ul>
 
-    <h2>إضافة مطعم ومنيو</h2>
     <input type="text" id="restaurantName" placeholder="اسم المطعم">
     <input type="text" id="menuLink" placeholder="رابط المنيو">
-    <button onclick="addRestaurant()">إضافة</button>
+    <button onclick="addItem('restaurant')">إضافة مطعم</button>
     <ul id="restaurantsList"></ul>
 
     <script>
-        let countries = [];
-        let cities = [];
-        let restaurants = [];
+        let countries = [], cities = [], restaurants = [];
 
-        // رابط API الخاص بـ Google Sheets
         const apiUrl = "https://script.google.com/macros/s/AKfycby1E6rRIWAUbCuNu3oCHyauTV91iba6cjAgDgBFDM5-ZLgkTA4q_lmdTwaKZSwt6iE4QQ/exec";
 
-        // دالة لجلب البيانات من Google Sheets وعرضها
         async function fetchData() {
             try {
                 const response = await fetch(apiUrl);
                 const data = await response.json();
 
-                if (data && Array.isArray(data) && data.length > 0) {
+                if (Array.isArray(data) && data.length > 0) {
                     displayData(data);
                 } else {
-                    console.log("لم يتم العثور على بيانات.");
+                    console.log("لا توجد بيانات متاحة.");
                 }
             } catch (error) {
-                console.error("حدث خطأ أثناء جلب البيانات:", error);
+                console.error("خطأ أثناء جلب البيانات:", error);
             }
         }
 
-        // دالة عرض البيانات في الجدول
         function displayData(data) {
             const tableBody = document.getElementById("dataTable");
-            tableBody.innerHTML = ""; // تنظيف الجدول قبل إعادة تحميل البيانات
+            tableBody.innerHTML = "";
 
             data.forEach(row => {
-                if (row.length >= 4) { // التحقق من وجود جميع الأعمدة
+                if (row.length >= 4) {
                     const tr = document.createElement("tr");
-
                     row.forEach((cell, index) => {
                         const td = document.createElement("td");
-
-                        if (index === 3) { // العمود الرابع (رابط المنيو)
+                        if (index === 3) {
                             const link = document.createElement("a");
                             link.href = cell;
                             link.textContent = "عرض المنيو";
@@ -93,82 +82,70 @@
                         } else {
                             td.textContent = cell;
                         }
-
                         tr.appendChild(td);
                     });
-
                     tableBody.appendChild(tr);
                 }
             });
         }
 
-        // استدعاء الدالة عند تحميل الصفحة
-        window.onload = fetchData;
+        function addItem(type) {
+            let inputField, list, array, removeFunction;
 
-        function addCountry() {
-            let name = document.getElementById("countryName").value.trim();
-            if (name && !countries.includes(name)) {
-                countries.push(name);
-                updateList("countriesList", countries, "removeCountry");
-                document.getElementById("countryName").value = ""; // مسح الحقل بعد الإدخال
-            }
-        }
-
-        function removeCountry(index) {
-            countries.splice(index, 1);
-            updateList("countriesList", countries, "removeCountry");
-        }
-
-        function addCity() {
-            let name = document.getElementById("cityName").value.trim();
-            if (name && !cities.includes(name)) {
-                cities.push(name);
-                updateList("citiesList", cities, "removeCity");
-                document.getElementById("cityName").value = "";
-            }
-        }
-
-        function removeCity(index) {
-            cities.splice(index, 1);
-            updateList("citiesList", cities, "removeCity");
-        }
-
-        function addRestaurant() {
-            let name = document.getElementById("restaurantName").value.trim();
-            let link = document.getElementById("menuLink").value.trim();
-
-            if (name && link && isValidUrl(link)) {
-                restaurants.push({ name, link });
-                updateRestaurantsList();
-                document.getElementById("restaurantName").value = "";
-                document.getElementById("menuLink").value = "";
+            if (type === 'country') {
+                inputField = document.getElementById("countryName");
+                list = document.getElementById("countriesList");
+                array = countries;
+                removeFunction = removeCountry;
+            } else if (type === 'city') {
+                inputField = document.getElementById("cityName");
+                list = document.getElementById("citiesList");
+                array = cities;
+                removeFunction = removeCity;
             } else {
-                alert("يرجى إدخال اسم المطعم ورابط منيو صحيح.");
+                inputField = document.getElementById("restaurantName");
+                let linkField = document.getElementById("menuLink");
+
+                if (!isValidUrl(linkField.value)) {
+                    alert("يرجى إدخال رابط منيو صحيح.");
+                    return;
+                }
+
+                array = restaurants;
+                list = document.getElementById("restaurantsList");
+                removeFunction = removeRestaurant;
+
+                array.push({ name: inputField.value.trim(), link: linkField.value.trim() });
+                linkField.value = "";
+            }
+
+            let name = inputField.value.trim();
+            if (name && !array.some(item => (typeof item === 'object' ? item.name : item) === name)) {
+                array.push(name);
+                updateList(list, array, removeFunction);
+                inputField.value = "";
             }
         }
 
-        function removeRestaurant(index) {
-            restaurants.splice(index, 1);
-            updateRestaurantsList();
-        }
+        function removeCountry(index) { updateList(document.getElementById("countriesList"), countries.splice(index, 1), removeCountry); }
+        function removeCity(index) { updateList(document.getElementById("citiesList"), cities.splice(index, 1), removeCity); }
+        function removeRestaurant(index) { restaurants.splice(index, 1); updateRestaurantsList(); }
 
-        function updateList(elementId, list, removeFunction) {
-            let ul = document.getElementById(elementId);
-            ul.innerHTML = "";
-            list.forEach((item, index) => {
-                ul.innerHTML += `<li>${item} <button onclick="${removeFunction}(${index})">حذف</button></li>`;
+        function updateList(listElement, array, removeFunction) {
+            listElement.innerHTML = "";
+            array.forEach((item, index) => {
+                listElement.innerHTML += `<li>${item} <button onclick="${removeFunction.name}(${index})">حذف</button></li>`;
             });
         }
 
         function updateRestaurantsList() {
-            let ul = document.getElementById("restaurantsList");
-            ul.innerHTML = "";
+            let list = document.getElementById("restaurantsList");
+            list.innerHTML = "";
             restaurants.forEach((item, index) => {
-                ul.innerHTML += `<li>${item.name} - <a href="${item.link}" target="_blank">عرض المنيو</a> <button onclick="removeRestaurant(${index})">حذف</button></li>`;
+                list.innerHTML += `<li>${item.name} - <a href="${item.link}" target="_blank">عرض المنيو</a> <button onclick="removeRestaurant(${index})">حذف</button></li>`;
             });
         }
 
-        // التحقق من صحة الرابط
         function isValidUrl(string) {
             try {
                 new URL(string);
@@ -178,6 +155,7 @@
             }
         }
 
+        window.onload = fetchData;
     </script>
 </body>
 </html>
