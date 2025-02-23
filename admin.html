@@ -6,49 +6,87 @@
     <title>صفحة الإدارة</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
+        input, button { margin: 5px; padding: 5px; }
     </style>
 </head>
 <body>
     <h1>صفحة الإدارة</h1>
-
+    
     <h2>إضافة دولة</h2>
-    <input type="text" id="newCountry" placeholder="أدخل اسم الدولة">
+    <input type="text" id="countryName" placeholder="أدخل اسم الدولة">
     <button onclick="addCountry()">إضافة</button>
+    <ul id="countriesList"></ul>
 
     <h2>إضافة مدينة</h2>
-    <input type="text" id="newCity" placeholder="أدخل اسم المدينة">
+    <input type="text" id="cityName" placeholder="أدخل اسم المدينة">
     <button onclick="addCity()">إضافة</button>
+    <ul id="citiesList"></ul>
 
     <h2>إضافة مطعم ومنيو</h2>
     <input type="text" id="restaurantName" placeholder="اسم المطعم">
     <input type="text" id="menuLink" placeholder="رابط المنيو">
     <button onclick="addRestaurant()">إضافة</button>
+    <ul id="restaurantsList"></ul>
 
     <script>
+        let countries = [];
+        let cities = [];
+        let restaurants = [];
+
         function addCountry() {
-            let country = document.getElementById("newCountry").value;
-            if (country) {
-                alert("تمت إضافة الدولة: " + country);
-                document.getElementById("newCountry").value = "";
+            let name = document.getElementById("countryName").value.trim();
+            if (name) {
+                countries.push(name);
+                updateList("countriesList", countries, "removeCountry");
             }
+        }
+
+        function removeCountry(index) {
+            countries.splice(index, 1);
+            updateList("countriesList", countries, "removeCountry");
         }
 
         function addCity() {
-            let city = document.getElementById("newCity").value;
-            if (city) {
-                alert("تمت إضافة المدينة: " + city);
-                document.getElementById("newCity").value = "";
+            let name = document.getElementById("cityName").value.trim();
+            if (name) {
+                cities.push(name);
+                updateList("citiesList", cities, "removeCity");
             }
         }
 
+        function removeCity(index) {
+            cities.splice(index, 1);
+            updateList("citiesList", cities, "removeCity");
+        }
+
         function addRestaurant() {
-            let name = document.getElementById("restaurantName").value;
-            let menu = document.getElementById("menuLink").value;
-            if (name && menu) {
-                alert("تمت إضافة المطعم: " + name + " مع المنيو: " + menu);
-                document.getElementById("restaurantName").value = "";
-                document.getElementById("menuLink").value = "";
+            let name = document.getElementById("restaurantName").value.trim();
+            let link = document.getElementById("menuLink").value.trim();
+            if (name && link) {
+                restaurants.push({ name, link });
+                updateRestaurantsList();
             }
+        }
+
+        function removeRestaurant(index) {
+            restaurants.splice(index, 1);
+            updateRestaurantsList();
+        }
+
+        function updateList(elementId, list, removeFunction) {
+            let ul = document.getElementById(elementId);
+            ul.innerHTML = "";
+            list.forEach((item, index) => {
+                ul.innerHTML += `<li>${item} <button onclick="${removeFunction}(${index})">حذف</button></li>`;
+            });
+        }
+
+        function updateRestaurantsList() {
+            let ul = document.getElementById("restaurantsList");
+            ul.innerHTML = "";
+            restaurants.forEach((item, index) => {
+                ul.innerHTML += `<li>${item.name} - <a href="${item.link}" target="_blank">عرض المنيو</a> <button onclick="removeRestaurant(${index})">حذف</button></li>`;
+            });
         }
     </script>
 </body>
