@@ -3,85 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحة الإدارة</title>
+    <title>منيو المطاعم</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-        input, button, select { margin: 5px; padding: 5px; }
+        .container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
+        select, ul { width: 200px; padding: 5px; }
+        ul { list-style-type: none; padding: 0; }
     </style>
 </head>
 <body>
-    <h1>صفحة الإدارة</h1>
-    
-    <h2>إضافة دولة</h2>
-    <input type="text" id="countryName" placeholder="أدخل اسم الدولة">
-    <button onclick="addCountry()">إضافة</button>
-    <ul id="countriesList"></ul>
-
-    <h2>إضافة مدينة</h2>
-    <input type="text" id="cityName" placeholder="أدخل اسم المدينة">
-    <button onclick="addCity()">إضافة</button>
-    <ul id="citiesList"></ul>
-
-    <h2>إضافة مطعم ومنيو</h2>
-    <input type="text" id="restaurantName" placeholder="اسم المطعم">
-    <input type="text" id="menuLink" placeholder="رابط المنيو">
-    <button onclick="addRestaurant()">إضافة</button>
+    <h1>منيو المطاعم</h1>
+    <div class="container">
+        <select id="country" onchange="loadCities()">
+            <option value="">اختر الدولة</option>
+        </select>
+        <select id="city" onchange="loadRestaurants()">
+            <option value="">اختر المدينة</option>
+        </select>
+    </div>
+    <h2>المطاعم المسجلة</h2>
     <ul id="restaurantsList"></ul>
 
     <script>
         const SHEET_URL = 'https://script.google.com/macros/s/AKfycby1E6rRIWAUbCuNu3oCHyauTV91iba6cjAgDgBFDM5-ZLgkTA4q_lmdTwaKZSwt6iE4QQ/exec';
+        let data = {};
 
         async function fetchData() {
             try {
                 let response = await fetch(SHEET_URL + '?action=get');
-                let data = await response.json();
-                updateList('countriesList', data.countries, 'removeCountry');
-                updateList('citiesList', data.cities, 'removeCity');
-                updateRestaurantsList(data.restaurants);
+                data = await response.json();
+                loadCountries();
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         }
 
-        async function sendData(action, payload) {
-            await fetch(SHEET_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, ...payload })
-            });
-            fetchData();
-        }
-
-        function addCountry() {
-            let name = document.getElementById('countryName').value.trim();
-            if (name) sendData('addCountry', { name });
-        }
-
-        function addCity() {
-            let name = document.getElementById('cityName').value.trim();
-            if (name) sendData('addCity', { name });
-        }
-
-        function addRestaurant() {
-            let name = document.getElementById('restaurantName').value.trim();
-            let link = document.getElementById('menuLink').value.trim();
-            if (name && link) sendData('addRestaurant', { name, link });
-        }
-
-        function updateList(elementId, list, removeFunction) {
-            let ul = document.getElementById(elementId);
-            ul.innerHTML = '';
-            list.forEach((item, index) => {
-                ul.innerHTML += `<li>${item} <button onclick="sendData('${removeFunction}', { index })">حذف</button></li>`;
+        function loadCountries() {
+            let countrySelect = document.getElementById('country');
+            countrySelect.innerHTML = '<option value="">اختر الدولة</option>';
+            Object.keys(data).forEach(country => {
+                countrySelect.innerHTML += `<option value="${country}">${country}</option>`;
             });
         }
 
-        function updateRestaurantsList(restaurants) {
-            let ul = document.getElementById('restaurantsList');
-            ul.innerHTML = '';
-            restaurants.forEach((item, index) => {
-                ul.innerHTML += `<li>${item.name} - <a href="${item.link}" target="_blank">عرض المنيو</a> <button onclick="sendData('removeRestaurant', { index })">حذف</button></li>`;
-            });
+        function loadCities() {
+            let country = document.getElementById('country').value;
+            let citySelect = document.getElementById('city');
+            citySelect.innerHTML = '<option value="">اختر المدينة</option>';
+            if (country && data[country]) {
+                Object.keys(data[country]).forEach(city => {
+                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                });
+            }
+            document.getElementById('restaurantsList').innerHTML = '';
+        }
+
+        function loadRestaurants() {
+            let country = document.getElementById('country').value;
+            let city = document.getElementById('city').value;
+            let list = document.getElementById('restaurantsList');
+            list.innerHTML = '';
+            
+            if (country && city && data[country][city]) {
+                data[country][city].forEach(restaurant => {
+                    let listItem = document.createElement("li");
+                    listItem.innerHTML = `${restaurant.name} - <a href="${restaurant.menu}" target="_blank">عرض المنيو</a>`;
+                    list.appendChild(listItem);
+                });
+            }
         }
 
         fetchData();
