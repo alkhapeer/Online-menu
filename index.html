@@ -3,48 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منيو المطاعم</title>
+    <title>صفحة الإدارة</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
+        input, button, select { margin: 5px; padding: 5px; }
     </style>
 </head>
 <body>
-    <h1>منيو المطاعم</h1>
+    <h1>صفحة الإدارة</h1>
     
-    <div>
-        <select id="country">
-            <option>السعودية</option>
-            <option>الإمارات</option>
-        </select>
-        <select id="city">
-            <option>الرياض</option>
-            <option>جدة</option>
-        </select>
-        <input type="text" id="search" placeholder="ابحث عن المطعم">
-        <button onclick="searchRestaurant()">بحث</button>
-    </div>
-    
-    <h2>المطاعم المسجلة</h2>
+    <h2>إضافة دولة</h2>
+    <input type="text" id="countryName" placeholder="أدخل اسم الدولة">
+    <button onclick="addCountry()">إضافة</button>
+    <ul id="countriesList"></ul>
+
+    <h2>إضافة مدينة</h2>
+    <input type="text" id="cityName" placeholder="أدخل اسم المدينة">
+    <button onclick="addCity()">إضافة</button>
+    <ul id="citiesList"></ul>
+
+    <h2>إضافة مطعم ومنيو</h2>
+    <input type="text" id="restaurantName" placeholder="اسم المطعم">
+    <input type="text" id="menuLink" placeholder="رابط المنيو">
+    <button onclick="addRestaurant()">إضافة</button>
     <ul id="restaurantsList"></ul>
 
     <script>
-        let restaurants = [
-            { name: "الفرن الذهبي", menu: "menu1.html" },
-            { name: "المطعم اليمني", menu: "menu2.html" }
-        ];
-        
-        function searchRestaurant() {
-            let searchQuery = document.getElementById('search').value.toLowerCase();
-            let list = document.getElementById('restaurantsList');
-            list.innerHTML = "";
-            restaurants.forEach(restaurant => {
-                if (restaurant.name.toLowerCase().includes(searchQuery)) {
-                    let listItem = document.createElement("li");
-                    listItem.innerHTML = `${restaurant.name} - <a href="${restaurant.menu}" target="_blank">عرض المنيو</a>`;
-                    list.appendChild(listItem);
-                }
+        const SHEET_URL = 'https://script.google.com/macros/s/AKfycby1E6rRIWAUbCuNu3oCHyauTV91iba6cjAgDgBFDM5-ZLgkTA4q_lmdTwaKZSwt6iE4QQ/exec';
+
+        async function fetchData() {
+            try {
+                let response = await fetch(SHEET_URL + '?action=get');
+                let data = await response.json();
+                updateList('countriesList', data.countries, 'removeCountry');
+                updateList('citiesList', data.cities, 'removeCity');
+                updateRestaurantsList(data.restaurants);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        async function sendData(action, payload) {
+            await fetch(SHEET_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, ...payload })
+            });
+            fetchData();
+        }
+
+        function addCountry() {
+            let name = document.getElementById('countryName').value.trim();
+            if (name) sendData('addCountry', { name });
+        }
+
+        function addCity() {
+            let name = document.getElementById('cityName').value.trim();
+            if (name) sendData('addCity', { name });
+        }
+
+        function addRestaurant() {
+            let name = document.getElementById('restaurantName').value.trim();
+            let link = document.getElementById('menuLink').value.trim();
+            if (name && link) sendData('addRestaurant', { name, link });
+        }
+
+        function updateList(elementId, list, removeFunction) {
+            let ul = document.getElementById(elementId);
+            ul.innerHTML = '';
+            list.forEach((item, index) => {
+                ul.innerHTML += `<li>${item} <button onclick="sendData('${removeFunction}', { index })">حذف</button></li>`;
             });
         }
+
+        function updateRestaurantsList(restaurants) {
+            let ul = document.getElementById('restaurantsList');
+            ul.innerHTML = '';
+            restaurants.forEach((item, index) => {
+                ul.innerHTML += `<li>${item.name} - <a href="${item.link}" target="_blank">عرض المنيو</a> <button onclick="sendData('removeRestaurant', { index })">حذف</button></li>`;
+            });
+        }
+
+        fetchData();
     </script>
 </body>
 </html>
