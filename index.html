@@ -6,14 +6,13 @@
     <title>منيو المطاعم</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-        .container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
-        select, ul { width: 200px; padding: 5px; }
-        ul { list-style-type: none; padding: 0; }
+        select, button { margin: 10px; padding: 5px; }
     </style>
 </head>
 <body>
     <h1>منيو المطاعم</h1>
-    <div class="container">
+    
+    <div>
         <select id="country" onchange="loadCities()">
             <option value="">اختر الدولة</option>
         </select>
@@ -21,41 +20,40 @@
             <option value="">اختر المدينة</option>
         </select>
     </div>
-    <h2>المطاعم المسجلة</h2>
+    
+    <h2>المطاعم المتاحة</h2>
     <ul id="restaurantsList"></ul>
 
     <script>
         const SHEET_URL = 'https://script.google.com/macros/s/AKfycby1E6rRIWAUbCuNu3oCHyauTV91iba6cjAgDgBFDM5-ZLgkTA4q_lmdTwaKZSwt6iE4QQ/exec';
-        let data = {};
 
         async function fetchData() {
             try {
                 let response = await fetch(SHEET_URL + '?action=get');
-                data = await response.json();
-                loadCountries();
+                let data = await response.json();
+                populateDropdown('country', data.countries);
+                window.data = data; 
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         }
 
-        function loadCountries() {
-            let countrySelect = document.getElementById('country');
-            countrySelect.innerHTML = '<option value="">اختر الدولة</option>';
-            Object.keys(data).forEach(country => {
-                countrySelect.innerHTML += `<option value="${country}">${country}</option>`;
+        function populateDropdown(elementId, items) {
+            let dropdown = document.getElementById(elementId);
+            dropdown.innerHTML = '<option value="">اختر</option>';
+            items.forEach(item => {
+                let option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                dropdown.appendChild(option);
             });
         }
 
         function loadCities() {
             let country = document.getElementById('country').value;
-            let citySelect = document.getElementById('city');
-            citySelect.innerHTML = '<option value="">اختر المدينة</option>';
-            if (country && data[country]) {
-                Object.keys(data[country]).forEach(city => {
-                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
-                });
+            if (country && window.data) {
+                populateDropdown('city', window.data.cities[country] || []);
             }
-            document.getElementById('restaurantsList').innerHTML = '';
         }
 
         function loadRestaurants() {
@@ -64,10 +62,11 @@
             let list = document.getElementById('restaurantsList');
             list.innerHTML = '';
             
-            if (country && city && data[country][city]) {
-                data[country][city].forEach(restaurant => {
-                    let listItem = document.createElement("li");
-                    listItem.innerHTML = `${restaurant.name} - <a href="${restaurant.menu}" target="_blank">عرض المنيو</a>`;
+            if (country && city && window.data) {
+                let restaurants = window.data.restaurants[country]?.[city] || [];
+                restaurants.forEach(({ name, menu }) => {
+                    let listItem = document.createElement('li');
+                    listItem.innerHTML = `${name} - <a href="${menu}" target="_blank">عرض المنيو</a>`;
                     list.appendChild(listItem);
                 });
             }
